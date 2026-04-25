@@ -7,6 +7,7 @@ import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.net.wifi.ScanResult
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
@@ -186,12 +187,10 @@ class NetworkInfoRepository(private val context: Context) {
 
         val wifiStandard: String? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             when (wifiInfo?.wifiStandard) {
-                WifiInfo.WIFI_STANDARD_11AX -> "Wi-Fi 6 (802.11ax)"
-                WifiInfo.WIFI_STANDARD_11AC -> "Wi-Fi 5 (802.11ac)"
-                WifiInfo.WIFI_STANDARD_11N -> "Wi-Fi 4 (802.11n)"
-                WifiInfo.WIFI_STANDARD_11G -> "Wi-Fi (802.11g)"
-                WifiInfo.WIFI_STANDARD_11A -> "Wi-Fi (802.11a)"
-                WifiInfo.WIFI_STANDARD_11B -> "Wi-Fi (802.11b)"
+                ScanResult.WIFI_STANDARD_11AX -> "Wi-Fi 6 (802.11ax)"
+                ScanResult.WIFI_STANDARD_11AC -> "Wi-Fi 5 (802.11ac)"
+                ScanResult.WIFI_STANDARD_11N -> "Wi-Fi 4 (802.11n)"
+                ScanResult.WIFI_STANDARD_LEGACY -> "Wi-Fi (802.11a/b/g)"
                 else -> inferWifiStandard(frequency)
             }
         } else {

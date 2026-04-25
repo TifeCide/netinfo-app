@@ -1,50 +1,59 @@
 package cn.aeolusdev.netinfo.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SignalWifi0Bar
-import androidx.compose.material.icons.filled.SignalWifi1Bar
-import androidx.compose.material.icons.filled.SignalWifi2Bar
-import androidx.compose.material.icons.filled.SignalWifi3Bar
-import androidx.compose.material.icons.filled.SignalWifi4Bar
 
 /**
- * Displays a Wi-Fi signal strength icon based on RSSI value.
- * RSSI levels: >= -55 excellent, -55..-70 good, -70..-80 fair, < -80 poor
+ * Displays Wi-Fi signal strength as 4 ascending bars based on RSSI.
+ * RSSI levels: >= -55 excellent (4 bars), -55..-70 good (3 bars),
+ *              -70..-80 fair (2 bars), -80..-90 weak (1 bar), < -90 no signal (0 bars)
  */
 @Composable
 fun SignalStrengthBar(
     rssi: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    barCount: Int = 4
 ) {
-    val (icon, tint) = when {
-        rssi >= -55 -> Icons.Filled.SignalWifi4Bar to MaterialTheme.colorScheme.primary
-        rssi >= -70 -> Icons.Filled.SignalWifi3Bar to MaterialTheme.colorScheme.primary
-        rssi >= -80 -> Icons.Filled.SignalWifi2Bar to MaterialTheme.colorScheme.tertiary
-        rssi >= -90 -> Icons.Filled.SignalWifi1Bar to MaterialTheme.colorScheme.error
-        else -> Icons.Filled.SignalWifi0Bar to MaterialTheme.colorScheme.error
+    val activeBars = when {
+        rssi >= -55 -> 4
+        rssi >= -70 -> 3
+        rssi >= -80 -> 2
+        rssi >= -90 -> 1
+        else -> 0
     }
 
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = "Signal strength $rssi dBm",
-            tint = tint,
-            modifier = Modifier.size(20.dp)
-        )
+    val activeColor = when {
+        rssi >= -70 -> MaterialTheme.colorScheme.primary
+        rssi >= -80 -> MaterialTheme.colorScheme.tertiary
+        else -> MaterialTheme.colorScheme.error
+    }
+    val inactiveColor = MaterialTheme.colorScheme.outlineVariant
+
+    Canvas(modifier = modifier.size(20.dp, 18.dp)) {
+        val spacing = size.width * 0.1f
+        val barWidth = (size.width - spacing * (barCount - 1)) / barCount
+
+        for (i in 0 until barCount) {
+            val barHeightFraction = (i + 1).toFloat() / barCount
+            val barHeight = size.height * barHeightFraction
+            val x = i * (barWidth + spacing)
+            val y = size.height - barHeight
+            val color: Color = if (i < activeBars) activeColor else inactiveColor
+            drawRoundRect(
+                color = color,
+                topLeft = Offset(x, y),
+                size = Size(barWidth, barHeight),
+                cornerRadius = CornerRadius(barWidth / 2, barWidth / 2)
+            )
+        }
     }
 }
 

@@ -27,7 +27,7 @@ import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -361,7 +361,7 @@ private fun InfoRow(
 @Composable
 private fun DetailRow(label: String, value: String) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Divider()
+        HorizontalDivider()
         Row(
             modifier = Modifier
                 .fillMaxWidth()

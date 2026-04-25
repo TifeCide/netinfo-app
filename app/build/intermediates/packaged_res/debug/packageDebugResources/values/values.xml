@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#1565C0</color>
+    <string name="app_name">NetInfo</string>
+    <string name="bssid">BSSID</string>
+    <string name="channel">信道</string>
+    <string name="connected">已连接</string>
+    <string name="copy">复制</string>
+    <string name="details">详细信息</string>
+    <string name="disconnected">已断开</string>
+    <string name="dns">DNS</string>
+    <string name="duplex_mode">双工模式</string>
+    <string name="frequency">频率</string>
+    <string name="gateway">网关</string>
+    <string name="host_address">主机地址</string>
+    <string name="interface_name">接口名称</string>
+    <string name="ip_address">IP 地址</string>
+    <string name="link_speed">连接速率</string>
+    <string name="mac_address">MAC 地址</string>
+    <string name="nav_about">关于</string>
+    <string name="nav_status">状态</string>
+    <string name="nav_tools">工具</string>
+    <string name="network_type">网络类型</string>
+    <string name="ping_result">Ping 结果</string>
+    <string name="ping_test">Ping 测试</string>
+    <string name="refresh">刷新</string>
+    <string name="signal_strength">信号强度</string>
+    <string name="ssid">SSID</string>
+    <string name="start_ping">开始 Ping</string>
+    <string name="subnet_mask">子网掩码</string>
+    <string name="unknown">未知</string>
+    <string name="wifi_standard">网络标准</string>
+    <style name="Theme.NetInfo" parent="android:Theme.Material.Light.NoActionBar"/>
+</resources>
