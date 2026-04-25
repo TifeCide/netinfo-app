@@ -2,6 +2,7 @@ package cn.aeolusdev.netinfo.model
 
 enum class NetworkType {
     WIFI,
+    MOBILE,
     ETHERNET,
     UNKNOWN
 }
@@ -23,6 +24,8 @@ data class NetworkDetailInfo(
     val macAddress: String? = null,
     val isMetered: Boolean = false,
     val connectionState: ConnectionState = ConnectionState.UNKNOWN,
+    val updatesPaused: Boolean = false,
+    val isVpnActive: Boolean = false,
 
     // WiFi specific
     val ssid: String? = null,
@@ -33,7 +36,32 @@ data class NetworkDetailInfo(
     val channel: Int? = null,
     val wifiStandard: String? = null,
 
+    // Mobile specific
+    val carrierName: String? = null,
+    val mobileNetworkLabel: String? = null,
+    val cellId: String? = null,
+    val locationAreaCode: String? = null,
+    val fiveGMode: String? = null,
+
     // Ethernet specific
     val ethernetLinkSpeedMbps: Int? = null,
-    val duplex: String? = null
+    val duplex: String? = null,
+
+    // External network info
+    val externalInfo: ExternalNetworkInfo = ExternalNetworkInfo()
 )
+
+data class ExternalNetworkInfo(
+    val ip: String? = null,
+    val city: String? = null,
+    val region: String? = null,
+    val country: String? = null,
+    val org: String? = null,
+    val timeZone: String? = null,
+    val flagEmoji: String = "",
+    val error: String? = null
+)
+
+fun NetworkDetailInfo.primaryLocalIpAddress(): String? {
+    return ipv4Addresses.firstOrNull() ?: ipv6Addresses.firstOrNull()
+}

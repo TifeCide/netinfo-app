@@ -1,7 +1,16 @@
 package cn.aeolusdev.netinfo.ui.screens
 
+import android.Manifest
+import android.content.Intent
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,27 +23,26 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cable
-import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.NetworkCell
+import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material.icons.filled.WifiOff
-import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,223 +51,327 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.core.content.ContextCompat
 import cn.aeolusdev.netinfo.model.ConnectionState
 import cn.aeolusdev.netinfo.model.NetworkDetailInfo
 import cn.aeolusdev.netinfo.model.NetworkType
+import cn.aeolusdev.netinfo.model.primaryLocalIpAddress
+import cn.aeolusdev.netinfo.ui.connectionStateLabel
+import cn.aeolusdev.netinfo.ui.networkTypeIcon
+import cn.aeolusdev.netinfo.ui.networkTypeLabel
 import cn.aeolusdev.netinfo.ui.components.SignalStrengthBar
 import cn.aeolusdev.netinfo.ui.components.rssiToDescription
 
 @Composable
 fun StatusScreen(viewModel: NetworkViewModel) {
     val networkInfo by viewModel.networkInfo.collectAsState()
-    val clipboardManager = LocalClipboardManager.current
     var detailsExpanded by remember { mutableStateOf(false) }
 
-    Scaffold(
-        floatingActionButton = {
-            Column(horizontalAlignment = Alignment.End) {
-                SmallFloatingActionButton(
-                    onClick = {
-                        val summary = buildSummaryText(networkInfo)
-                        clipboardManager.setText(AnnotatedString(summary))
-                    },
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                ) {
-                    Icon(Icons.Filled.ContentCopy, contentDescription = "复制信息")
-                }
-                Spacer(modifier = Modifier.size(8.dp))
-                ExtendedFloatingActionButton(
-                    onClick = { viewModel.refresh() },
-                    icon = { Icon(Icons.Filled.Refresh, contentDescription = "刷新") },
-                    text = { Text("刷新") }
-                )
-            }
+    RequestLocationPermissions()
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            OverviewCard(networkInfo = networkInfo)
         }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(
-                top = 16.dp,
-                bottom = 88.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                NetworkTypeCard(networkInfo = networkInfo)
-            }
 
-            item {
-                MainInfoCard(networkInfo = networkInfo)
-            }
-
-            item {
-                DetailsCard(
-                    networkInfo = networkInfo,
-                    expanded = detailsExpanded,
-                    onToggle = { detailsExpanded = !detailsExpanded }
-                )
-            }
+        item {
+            DetailsCard(
+                networkInfo = networkInfo,
+                expanded = detailsExpanded,
+                onToggle = { detailsExpanded = !detailsExpanded }
+            )
         }
     }
 }
 
 @Composable
-private fun NetworkTypeCard(networkInfo: NetworkDetailInfo) {
+private fun RequestLocationPermissions() {
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { }
+
+    LaunchedEffect(Unit) {
+        val hasFineLocation = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        val hasCoarseLocation = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!hasFineLocation && !hasCoarseLocation) {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun OverviewCard(networkInfo: NetworkDetailInfo) {
+    val contentColor = overviewContentColor(networkInfo)
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = when (networkInfo.connectionState) {
                 ConnectionState.CONNECTED -> MaterialTheme.colorScheme.primaryContainer
                 ConnectionState.DISCONNECTED -> MaterialTheme.colorScheme.errorContainer
-                else -> MaterialTheme.colorScheme.surfaceVariant
+                ConnectionState.UNKNOWN -> MaterialTheme.colorScheme.surfaceVariant
             }
         )
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Icon(
-                imageVector = when (networkInfo.networkType) {
-                    NetworkType.WIFI -> if (networkInfo.connectionState == ConnectionState.CONNECTED)
-                        Icons.Filled.Wifi else Icons.Filled.WifiOff
-                    NetworkType.ETHERNET -> Icons.Filled.Cable
-                    else -> Icons.Filled.WifiOff
-                },
-                contentDescription = "网络类型",
-                modifier = Modifier.size(48.dp),
-                tint = when (networkInfo.connectionState) {
-                    ConnectionState.CONNECTED -> MaterialTheme.colorScheme.onPrimaryContainer
-                    ConnectionState.DISCONNECTED -> MaterialTheme.colorScheme.onErrorContainer
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Icon(
+                    imageVector = networkTypeIcon(networkInfo),
+                    contentDescription = "网络类型",
+                    modifier = Modifier.size(56.dp),
+                    tint = contentColor
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = networkTypeLabel(networkInfo),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = contentColor
+                    )
+                    Text(
+                        text = buildStatusSubtitle(networkInfo),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = contentColor
+                    )
                 }
-            )
-            Column {
-                Text(
-                    text = when (networkInfo.networkType) {
-                        NetworkType.WIFI -> "Wi-Fi"
-                        NetworkType.ETHERNET -> "以太网"
-                        else -> "未知网络"
-                    },
-                    style = MaterialTheme.typography.titleLarge,
-                    color = when (networkInfo.connectionState) {
-                        ConnectionState.CONNECTED -> MaterialTheme.colorScheme.onPrimaryContainer
-                        ConnectionState.DISCONNECTED -> MaterialTheme.colorScheme.onErrorContainer
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
-                    }
+            }
+
+            if (networkInfo.isVpnActive) {
+                StatusBadge(
+                    text = "VPN 已开启",
+                    imageVector = Icons.Filled.Lock,
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
                 )
+            }
+
+            if (networkInfo.updatesPaused) {
                 Text(
-                    text = when (networkInfo.connectionState) {
-                        ConnectionState.CONNECTED -> "已连接"
-                        ConnectionState.DISCONNECTED -> "已断开"
-                        else -> "检测中..."
-                    },
+                    text = "自动刷新已暂停",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = when (networkInfo.connectionState) {
-                        ConnectionState.CONNECTED -> MaterialTheme.colorScheme.onPrimaryContainer
-                        ConnectionState.DISCONNECTED -> MaterialTheme.colorScheme.onErrorContainer
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
-                    }
+                    color = MaterialTheme.colorScheme.error,
+                    fontWeight = FontWeight.SemiBold
                 )
+            }
+
+            when (networkInfo.networkType) {
+                NetworkType.WIFI -> WifiOverviewRows(networkInfo, contentColor)
+                NetworkType.MOBILE -> MobileOverviewRows(networkInfo, contentColor)
+                NetworkType.ETHERNET -> EthernetOverviewRows(networkInfo, contentColor)
+                NetworkType.UNKNOWN -> UnknownOverviewRows(networkInfo, contentColor)
             }
         }
     }
 }
 
 @Composable
-private fun MainInfoCard(networkInfo: NetworkDetailInfo) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
+private fun StatusBadge(
+    text: String,
+    imageVector: ImageVector,
+    containerColor: Color,
+    contentColor: Color
+) {
+    Surface(
+        color = containerColor,
+        contentColor = contentColor,
+        shape = RoundedCornerShape(999.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = imageVector,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
             Text(
-                text = "基本信息",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 12.dp)
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold
             )
-
-            // WiFi: SSID
-            if (networkInfo.networkType == NetworkType.WIFI) {
-                networkInfo.ssid?.let {
-                    InfoRow(
-                        icon = { Icon(Icons.Filled.Wifi, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                        label = "SSID",
-                        value = it
-                    )
-                }
-                networkInfo.rssi?.let { rssi ->
-                    InfoRow(
-                        icon = { SignalStrengthBar(rssi = rssi, modifier = Modifier.size(18.dp)) },
-                        label = "信号强度",
-                        value = rssiToDescription(rssi)
-                    )
-                }
-            }
-
-            // IP Address
-            val primaryIp = networkInfo.ipv4Addresses.firstOrNull()
-                ?: networkInfo.ipv6Addresses.firstOrNull()
-                ?: "—"
-            InfoRow(
-                icon = { Icon(Icons.Filled.Language, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                label = "IP 地址",
-                value = primaryIp
-            )
-
-            // Gateway
-            networkInfo.gateway?.let {
-                InfoRow(
-                    icon = { Icon(Icons.Filled.Router, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                    label = "网关",
-                    value = it
-                )
-            }
-
-            // DNS
-            if (networkInfo.dnsServers.isNotEmpty()) {
-                InfoRow(
-                    icon = { Icon(Icons.Outlined.Dns, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                    label = "DNS",
-                    value = networkInfo.dnsServers.firstOrNull() ?: "—"
-                )
-            }
-
-            // Link speed
-            val speed = networkInfo.linkSpeedMbps ?: networkInfo.ethernetLinkSpeedMbps
-            speed?.let {
-                InfoRow(
-                    icon = { Icon(Icons.Filled.Speed, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                    label = "连接速率",
-                    value = "$it Mbps"
-                )
-            }
         }
     }
 }
 
+@Composable
+private fun WifiOverviewRows(networkInfo: NetworkDetailInfo, contentColor: Color) {
+    networkInfo.ssid?.let {
+        OverviewInfoRow(
+            label = "SSID",
+            value = it,
+            color = contentColor,
+            icon = { Icon(Icons.Filled.Wifi, contentDescription = null, modifier = Modifier.size(18.dp)) }
+        )
+    }
+    networkInfo.rssi?.let { rssi ->
+        OverviewInfoRow(
+            label = "信号强度",
+            value = rssiToDescription(rssi),
+            color = contentColor,
+            icon = { SignalStrengthBar(rssi = rssi, modifier = Modifier.size(18.dp)) }
+        )
+    }
+    OverviewInfoRow(
+        label = "IP 地址",
+        value = primaryIp(networkInfo),
+        color = contentColor,
+        icon = { Icon(Icons.Filled.Language, contentDescription = null, modifier = Modifier.size(18.dp)) }
+    )
+    networkInfo.gateway?.let { gateway ->
+        OverviewInfoRow(
+            label = "网关",
+            value = gateway,
+            color = contentColor,
+            icon = { Icon(Icons.Filled.Router, contentDescription = null, modifier = Modifier.size(18.dp)) },
+            trailingContent = { GatewayOpenButton(gateway = gateway, tint = contentColor) }
+        )
+    }
+}
+
+@Composable
+private fun MobileOverviewRows(networkInfo: NetworkDetailInfo, contentColor: Color) {
+    networkInfo.carrierName?.let {
+        OverviewInfoRow(
+            label = "运营商",
+            value = it,
+            color = contentColor,
+            icon = { Icon(Icons.Filled.Business, contentDescription = null, modifier = Modifier.size(18.dp)) }
+        )
+    }
+    networkInfo.mobileNetworkLabel?.let {
+        OverviewInfoRow(
+            label = "网络制式",
+            value = it,
+            color = contentColor,
+            icon = { Icon(Icons.Filled.NetworkCell, contentDescription = null, modifier = Modifier.size(18.dp)) }
+        )
+    }
+    networkInfo.fiveGMode?.let {
+        OverviewInfoRow(
+            label = "5G 组网",
+            value = it,
+            color = contentColor,
+            icon = { Icon(Icons.Filled.Memory, contentDescription = null, modifier = Modifier.size(18.dp)) }
+        )
+    }
+    networkInfo.cellId?.let {
+        OverviewInfoRow(
+            label = "CID",
+            value = it,
+            color = contentColor,
+            icon = { Icon(Icons.Filled.Memory, contentDescription = null, modifier = Modifier.size(18.dp)) }
+        )
+    }
+    networkInfo.locationAreaCode?.let {
+        OverviewInfoRow(
+            label = "LAC/TAC",
+            value = it,
+            color = contentColor,
+            icon = { Icon(Icons.Filled.Memory, contentDescription = null, modifier = Modifier.size(18.dp)) }
+        )
+    }
+    OverviewInfoRow(
+        label = "IP 地址",
+        value = primaryIp(networkInfo),
+        color = contentColor,
+        icon = { Icon(Icons.Filled.Language, contentDescription = null, modifier = Modifier.size(18.dp)) }
+    )
+}
+
+@Composable
+private fun EthernetOverviewRows(networkInfo: NetworkDetailInfo, contentColor: Color) {
+    OverviewInfoRow(
+        label = "IP 地址",
+        value = primaryIp(networkInfo),
+        color = contentColor,
+        icon = { Icon(Icons.Filled.Language, contentDescription = null, modifier = Modifier.size(18.dp)) }
+    )
+    networkInfo.gateway?.let { gateway ->
+        OverviewInfoRow(
+            label = "网关",
+            value = gateway,
+            color = contentColor,
+            icon = { Icon(Icons.Filled.Router, contentDescription = null, modifier = Modifier.size(18.dp)) },
+            trailingContent = { GatewayOpenButton(gateway = gateway, tint = contentColor) }
+        )
+    }
+    networkInfo.linkSpeedMbps?.let {
+        OverviewInfoRow(
+            label = "连接速率",
+            value = "$it Mbps",
+            color = contentColor,
+            icon = { Icon(Icons.Filled.Speed, contentDescription = null, modifier = Modifier.size(18.dp)) }
+        )
+    }
+}
+
+@Composable
+private fun UnknownOverviewRows(networkInfo: NetworkDetailInfo, contentColor: Color) {
+    OverviewInfoRow(
+        label = "连接状态",
+        value = connectionStateLabel(networkInfo),
+        color = contentColor,
+        icon = { Icon(Icons.Filled.Language, contentDescription = null, modifier = Modifier.size(18.dp)) }
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun DetailsCard(
     networkInfo: NetworkDetailInfo,
     expanded: Boolean,
     onToggle: () -> Unit
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(onClick = onToggle),
+                    .combinedClickable(onClick = onToggle, onLongClick = onToggle),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "详细信息",
+                    text = "详情信息",
                     style = MaterialTheme.typography.titleMedium
                 )
                 Icon(
@@ -271,53 +383,68 @@ private fun DetailsCard(
             AnimatedVisibility(visible = expanded) {
                 Column(
                     modifier = Modifier.padding(top = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // All IPs
-                    networkInfo.ipv4Addresses.forEachIndexed { idx, ip ->
-                        DetailRow(label = if (idx == 0) "IPv4 地址" else "IPv4 #${idx + 1}", value = ip)
+                    networkInfo.ipv4Addresses.forEachIndexed { index, ip ->
+                        DetailRow(label = if (index == 0) "IPv4 地址" else "IPv4 #${index + 1}", value = ip)
                     }
-                    networkInfo.ipv6Addresses.forEachIndexed { idx, ip ->
-                        DetailRow(label = if (idx == 0) "IPv6 地址" else "IPv6 #${idx + 1}", value = ip)
-                    }
-
-                    // Subnet mask
-                    if (networkInfo.prefixLength > 0) {
-                        DetailRow(label = "子网掩码", value = prefixLengthToSubnetMask(networkInfo.prefixLength))
+                    networkInfo.ipv6Addresses.forEachIndexed { index, ip ->
+                        DetailRow(label = if (index == 0) "IPv6 地址" else "IPv6 #${index + 1}", value = ip)
                     }
 
-                    // MAC
-                    networkInfo.macAddress?.let {
-                        DetailRow(label = "MAC 地址", value = it)
+                    if (networkInfo.prefixLength in 1..32) {
+                        DetailRow(
+                            label = "子网掩码",
+                            value = prefixLengthToSubnetMask(networkInfo.prefixLength)
+                        )
                     }
 
-                    // Gateway
-                    networkInfo.gateway?.let {
-                        DetailRow(label = "默认网关", value = it)
+                    networkInfo.macAddress?.let { DetailRow(label = "MAC 地址", value = it) }
+                    networkInfo.gateway?.let { gateway ->
+                        DetailRow(
+                            label = "默认网关",
+                            value = gateway,
+                            trailingContent = if (supportsGatewayQuickOpen(networkInfo)) {
+                                { GatewayOpenButton(gateway = gateway) }
+                            } else {
+                                null
+                            }
+                        )
+                    }
+                    networkInfo.dnsServers.forEachIndexed { index, dns ->
+                        DetailRow(label = "DNS ${index + 1}", value = dns)
                     }
 
-                    // DNS list
-                    networkInfo.dnsServers.forEachIndexed { idx, dns ->
-                        DetailRow(label = "DNS ${idx + 1}", value = dns)
-                    }
-
-                    // Interface
-                    if (networkInfo.interfaceName.isNotEmpty()) {
+                    if (networkInfo.interfaceName.isNotBlank()) {
                         DetailRow(label = "接口名称", value = networkInfo.interfaceName)
                     }
 
-                    // WiFi specific
                     if (networkInfo.networkType == NetworkType.WIFI) {
                         networkInfo.bssid?.let { DetailRow(label = "BSSID", value = it) }
-                        networkInfo.frequencyMhz?.let { DetailRow(label = "频率", value = "${it} MHz") }
+                        networkInfo.frequencyMhz?.let { DetailRow(label = "频率", value = "$it MHz") }
                         networkInfo.channel?.let { DetailRow(label = "信道", value = it.toString()) }
                         networkInfo.wifiStandard?.let { DetailRow(label = "网络标准", value = it) }
                     }
 
-                    // Ethernet specific
+                    if (networkInfo.networkType == NetworkType.MOBILE) {
+                        networkInfo.carrierName?.let { DetailRow(label = "运营商", value = it) }
+                        networkInfo.mobileNetworkLabel?.let { DetailRow(label = "网络制式", value = it) }
+                        networkInfo.cellId?.let { DetailRow(label = "基站 ID (CID)", value = it) }
+                        networkInfo.locationAreaCode?.let { DetailRow(label = "位置区码 (LAC/TAC)", value = it) }
+                        networkInfo.fiveGMode?.let { DetailRow(label = "5G 组网", value = it) }
+                    }
+
                     if (networkInfo.networkType == NetworkType.ETHERNET) {
                         networkInfo.duplex?.let { DetailRow(label = "双工模式", value = it) }
-                        networkInfo.ethernetLinkSpeedMbps?.let { DetailRow(label = "以太网速率", value = "$it Mbps") }
+                        networkInfo.ethernetLinkSpeedMbps?.let {
+                            DetailRow(label = "以太网速率", value = "$it Mbps")
+                        }
+                    }
+
+                    networkInfo.linkSpeedMbps?.let {
+                        if (networkInfo.networkType != NetworkType.ETHERNET) {
+                            DetailRow(label = "连接速率", value = "$it Mbps")
+                        }
                     }
 
                     DetailRow(
@@ -331,15 +458,17 @@ private fun DetailsCard(
 }
 
 @Composable
-private fun InfoRow(
-    icon: @Composable () -> Unit,
+private fun OverviewInfoRow(
     label: String,
-    value: String
+    value: String,
+    color: Color,
+    icon: @Composable () -> Unit,
+    trailingContent: (@Composable () -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         icon()
@@ -347,38 +476,118 @@ private fun InfoRow(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(80.dp)
+            color = color.copy(alpha = 0.82f),
+            modifier = Modifier.width(84.dp)
         )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
+        CopyableValueText(
+            value = value,
+            color = color,
             modifier = Modifier.weight(1f)
+        )
+        trailingContent?.invoke()
+    }
+}
+
+@Composable
+private fun DetailRow(
+    label: String,
+    value: String,
+    trailingContent: (@Composable () -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(112.dp)
+        )
+        CopyableValueText(
+            value = value,
+            modifier = Modifier.weight(1f)
+        )
+        trailingContent?.invoke()
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun CopyableValueText(
+    value: String,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.onSurface,
+    context: Context = LocalContext.current
+) {
+    val clipboardManager = LocalClipboardManager.current
+    Text(
+        text = value,
+        style = MaterialTheme.typography.bodyMedium,
+        color = color,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier.combinedClickable(
+            onClick = { },
+            onLongClick = {
+                clipboardManager.setText(AnnotatedString(value))
+                Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show()
+            }
+        )
+    )
+}
+
+private fun primaryIp(networkInfo: NetworkDetailInfo): String {
+    return networkInfo.primaryLocalIpAddress() ?: "—"
+}
+
+private fun buildStatusSubtitle(networkInfo: NetworkDetailInfo): String {
+    val parts = buildList {
+        add(connectionStateLabel(networkInfo))
+        when (networkInfo.networkType) {
+            NetworkType.WIFI -> networkInfo.wifiStandard?.let(::add)
+            NetworkType.MOBILE -> {
+                networkInfo.mobileNetworkLabel?.let(::add)
+                networkInfo.fiveGMode?.let { add("组网 $it") }
+            }
+
+            else -> Unit
+        }
+    }
+    return parts.joinToString(" · ")
+}
+
+private fun supportsGatewayQuickOpen(networkInfo: NetworkDetailInfo): Boolean {
+    return networkInfo.networkType == NetworkType.WIFI || networkInfo.networkType == NetworkType.ETHERNET
+}
+
+@Composable
+private fun GatewayOpenButton(
+    gateway: String,
+    tint: Color = MaterialTheme.colorScheme.primary
+) {
+    val context = LocalContext.current
+    IconButton(
+        onClick = { openGatewayInBrowser(context, gateway) },
+        modifier = Modifier.size(28.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Filled.OpenInBrowser,
+            contentDescription = "在浏览器中打开网关",
+            tint = tint,
+            modifier = Modifier.size(18.dp)
         )
     }
 }
 
 @Composable
-private fun DetailRow(label: String, value: String) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        HorizontalDivider()
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 6.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-    }
+private fun overviewContentColor(networkInfo: NetworkDetailInfo) = when (networkInfo.connectionState) {
+    ConnectionState.CONNECTED -> MaterialTheme.colorScheme.onPrimaryContainer
+    ConnectionState.DISCONNECTED -> MaterialTheme.colorScheme.onErrorContainer
+    ConnectionState.UNKNOWN -> MaterialTheme.colorScheme.onSurfaceVariant
 }
 
 private fun prefixLengthToSubnetMask(prefixLength: Int): String {
@@ -386,14 +595,23 @@ private fun prefixLengthToSubnetMask(prefixLength: Int): String {
     return "${(mask shr 24) and 0xFF}.${(mask shr 16) and 0xFF}.${(mask shr 8) and 0xFF}.${mask and 0xFF}"
 }
 
-private fun buildSummaryText(info: NetworkDetailInfo): String {
-    return buildString {
-        appendLine("网络类型: ${when (info.networkType) { NetworkType.WIFI -> "Wi-Fi"; NetworkType.ETHERNET -> "以太网"; else -> "未知" }}")
-        appendLine("连接状态: ${when (info.connectionState) { ConnectionState.CONNECTED -> "已连接"; ConnectionState.DISCONNECTED -> "已断开"; else -> "未知" }}")
-        info.ssid?.let { appendLine("SSID: $it") }
-        info.ipv4Addresses.firstOrNull()?.let { appendLine("IP 地址: $it") }
-        info.gateway?.let { appendLine("网关: $it") }
-        info.dnsServers.firstOrNull()?.let { appendLine("DNS: $it") }
-        info.macAddress?.let { appendLine("MAC 地址: $it") }
-    }.trimEnd()
+private fun openGatewayInBrowser(context: Context, gateway: String) {
+    runCatching {
+        val intent = Intent(Intent.ACTION_VIEW, gatewayUri(gateway)).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
+    }.onFailure {
+        Toast.makeText(context, "无法打开网关地址", Toast.LENGTH_SHORT).show()
+    }
+}
+
+private fun gatewayUri(gateway: String): Uri {
+    val normalized = gateway.substringBefore('%')
+    val host = if (':' in normalized && !normalized.startsWith("[")) {
+        "[$normalized]"
+    } else {
+        normalized
+    }
+    return Uri.parse("http://$host")
 }

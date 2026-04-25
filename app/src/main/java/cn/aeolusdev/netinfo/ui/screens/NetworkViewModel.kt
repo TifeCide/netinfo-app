@@ -28,6 +28,10 @@ class NetworkViewModel(application: Application) : AndroidViewModel(application)
         repository.refresh()
     }
 
+    fun setPaused(paused: Boolean) {
+        repository.setPaused(paused)
+    }
+
     override fun onCleared() {
         super.onCleared()
         repository.stop()

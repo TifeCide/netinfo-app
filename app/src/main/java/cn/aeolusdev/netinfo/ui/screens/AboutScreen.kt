@@ -2,6 +2,7 @@ package cn.aeolusdev.netinfo.ui.screens
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,8 +24,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import cn.aeolusdev.netinfo.R
 import cn.aeolusdev.netinfo.BuildConfig
 
 @Composable
@@ -40,13 +42,12 @@ fun AboutScreen() {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            imageVector = Icons.Filled.Info,
+        Image(
+            painter = painterResource(id = R.drawable.ic_launcher_foreground),
             contentDescription = "应用图标",
             modifier = Modifier
                 .size(80.dp)
-                .padding(top = 16.dp),
-            tint = MaterialTheme.colorScheme.primary
+                .padding(top = 16.dp)
         )
 
         Text(

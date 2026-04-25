@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:2:1-31:12
-INJECTED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:2:1-31:12
-INJECTED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:2:1-31:12
-INJECTED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:2:1-31:12
+ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:2:1-32:12
+INJECTED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:2:1-32:12
+INJECTED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:2:1-32:12
+INJECTED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:2:1-32:12
 MERGED from [androidx.navigation:navigation-common:2.7.7] C:\Users\dengp\.gradle\caches\transforms-4\fcd44dcc30493727156b646464cfa390\transformed\navigation-common-2.7.7\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.navigation:navigation-runtime:2.7.7] C:\Users\dengp\.gradle\caches\transforms-4\41b4ba74fb0b0dbbba7005de9c9d0fa8\transformed\navigation-runtime-2.7.7\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.navigation:navigation-common-ktx:2.7.7] C:\Users\dengp\.gradle\caches\transforms-4\39ca68c5dfdab4706a46ed28ddaa4aac\transformed\navigation-common-ktx-2.7.7\AndroidManifest.xml:2:1-7:12
@@ -87,8 +87,8 @@ ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:9:5-81
 	android:name
 		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:9:22-78
 application
-ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:11:5-29:19
-INJECTED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:11:5-29:19
+ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:11:5-30:19
+INJECTED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:11:5-30:19
 MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\dengp\.gradle\caches\transforms-4\863cf779c6cdc5c55430ac7f2941ff87\transformed\emoji2-1.3.0\AndroidManifest.xml:23:5-33:19
 MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\dengp\.gradle\caches\transforms-4\863cf779c6cdc5c55430ac7f2941ff87\transformed\emoji2-1.3.0\AndroidManifest.xml:23:5-33:19
 MERGED from [androidx.lifecycle:lifecycle-process:2.8.1] C:\Users\dengp\.gradle\caches\transforms-4\472af4b62758b768318846df998095a0\transformed\lifecycle-process-2.8.1\AndroidManifest.xml:23:5-33:19
@@ -122,25 +122,27 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\dengp\.gradle\cach
 	android:networkSecurityConfig
 		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:18:9-69
 activity#cn.aeolusdev.netinfo.MainActivity
-ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:19:9-28:20
+ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:19:9-29:20
 	android:label
-		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:22:13-45
+		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:23:13-45
 	android:exported
-		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:21:13-36
+		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:22:13-36
 	android:theme
-		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:23:13-49
+		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:24:13-49
+	android:enableOnBackInvokedCallback
+		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:20:13-55
 	android:name
-		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:20:13-41
+		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:21:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:24:13-27:29
+ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:25:13-28:29
 action#android.intent.action.MAIN
-ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:25:17-69
+ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:26:17-69
 	android:name
-		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:25:25-66
+		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:26:25-66
 category#android.intent.category.LAUNCHER
-ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:26:17-77
+ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:27:17-77
 	android:name
-		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:26:27-74
+		ADDED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml:27:27-74
 uses-sdk
 INJECTED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from D:\Projects\netinfo-app\app\src\main\AndroidManifest.xml
