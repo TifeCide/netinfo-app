@@ -130,10 +130,19 @@ fun ToolsScreen() {
 
 private suspend fun runPing(host: String): String = withContext(Dispatchers.IO) {
     return@withContext try {
-        val sanitized = host.trim().replace(Regex("[^a-zA-Z0-9._:\\-]"), "")
-        if (sanitized.isEmpty()) return@withContext "无效的主机地址"
+        // Strict allowlist: hostname labels, IPv4, and IPv6 addresses only
+        val sanitized = host.trim()
+        val hostnameRegex = Regex("^[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?)*$")
+        val ipv4Regex = Regex("^((25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)$")
+        val ipv6Regex = Regex("^[0-9a-fA-F:]+$")
 
-        val process = Runtime.getRuntime().exec(arrayOf("ping", "-c", "4", "-W", "3", sanitized))
+        if (!hostnameRegex.matches(sanitized) && !ipv4Regex.matches(sanitized) && !ipv6Regex.matches(sanitized)) {
+            return@withContext "无效的主机地址（只允许主机名、IPv4 或 IPv6）"
+        }
+
+        val process = ProcessBuilder("ping", "-c", "4", "-W", "3", sanitized)
+            .redirectErrorStream(false)
+            .start()
         val stdout = process.inputStream.bufferedReader().readText()
         val stderr = process.errorStream.bufferedReader().readText()
         process.waitFor()

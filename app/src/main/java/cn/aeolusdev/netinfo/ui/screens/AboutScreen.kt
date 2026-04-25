@@ -100,7 +100,9 @@ fun AboutScreen() {
             Icon(
                 Icons.Filled.Code,
                 contentDescription = null,
-                modifier = Modifier.size(18.dp).padding(end = 4.dp)
+                modifier = Modifier
+                    .padding(end = 4.dp)
+                    .size(18.dp)
             )
             Icon(
                 Icons.Filled.OpenInBrowser,
